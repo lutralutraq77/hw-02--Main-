@@ -1,8 +1,10 @@
 ---
+
 title: "hw-02"
 author: "Danny Jenkins (S2785798)"
 date: "`r Sys.Date()`"
 output: html_document
+
 ---
 
 ```{r setup, include=FALSE}
@@ -30,6 +32,7 @@ data_5k_10k <- strava_runs %>%
 
 ## Exercise 1
 
+### Exercise 1a
 ```{r ex1a, out.width="80%"}
 data_5k_10k %>% 
   filter(gender == "M") %>%
@@ -39,33 +42,54 @@ data_5k_10k %>%
 ```
 
 
-_Write your text to answer exercise 1a here (Please delete this message before submission!)_
-
-
-```{r ex1b, out.width="80%"}
-# Write your code for Ex1b here
-
-
-
-
-
+```{r summary-stats for M}
+summary(subset(strava_runs, gender == "M")$average.heart.rate..bpm.)
 ```
 
+The distribution is approximately bell shaped. Suggesting the data is roughly symmetric around the mean this can be seen with interquartile values since bot are around 10 bpm away from the mean. This suggests that most male runners heart rates don't deviated massively from the mean. 
 
-_Write your text to answer exercise 1b here (Please delete this message before submission!)_
+### Exercise 1b
+```{r ex1b, out.width="80%"}
+data_5k_10k %>% 
+  filter(gender == "F") %>%
+  filter(!is.na(average.heart.rate..bpm.)) %>%
+  ggplot(aes(x = average.heart.rate..bpm.)) + 
+  geom_histogram(bins = 20)
+
+```
+```{r summary-stats for F}
+summary(subset(strava_runs, gender == "F")$average.heart.rate..bpm.)
+```
+
+The female runners have a higer average heart rate in this data set. But have a lower maximum heart rate when compared to the males.  Additionally, the distribution has two roughly bellshaped curves with  potentially anomalous data in between. 
 
 
 ## Exercise 2
 
+
+### Exercise 2a
 ```{r ex2, out.width = "80%"}
-# Write your code to answer exercise 2a here
+r <- read.csv("data/strava_runs.csv")
 
+df <- r %>% filter(!is.na(`distance..m.`) & !is.na(`elapsed.time..s.`)) %>% mutate(Pace=(`elapsed.time..s.`/60)/(`distance..m.`/1000),
+       Distance = case_when(
+      `distance..m.` >=  4900 & `distance..m.` < 5600 ~ "5K",
+      `distance..m.` >= 9900 & `distance..m.` < 10600 ~ "10K",
+    ),
+    Gender = factor(gender, levels=c("M","F"), labels=c("Male runner","Female runner"))
+  ) %>% filter(!is.na(Distance)&!is.na(Gender))
 
-
-
+ggplot(df, aes(x=Distance, y=Pace,fill = Distance)) +
+  geom_boxplot(na.rm = TRUE) +
+  facet_wrap(~Gender) +
+  labs(title="Pace plots for 5K and 10K by Gender",
+       x="Distance", y="Pace (minutes/km)") +
+  theme(plot.title = element_text(hjust = 0.5,size = 12))
 ```
 
-_Write your text to answer exercise 2b here (Please delete this message before submission!)_
+### Execrise 2b
+
+The median pace for female runners is higher in both the 5k and the 10k runs compared to the males.
 
 
 
@@ -73,9 +97,32 @@ _Write your text to answer exercise 2b here (Please delete this message before s
 ## Exercise 3
 
 ```{r ex3, out.width = "80%"}
-# Write your code to answer exercise 3 here
+r <- read.csv("data/strava_runs.csv")
 
+df <- r %>%
+  filter(!is.na(`distance..m.`) & !is.na(`elapsed.time..s.`)) %>%
+  group_by(athlete) %>%                    
+  mutate(
+    Speed = `distance..m.` / `elapsed.time..s.`,        
+    avg_dis = mean(`distance..m.`, na.rm = TRUE),  
+    avg_d = case_when(               
+      avg_dis/ 1000 > 13 ~ ">13K",
+      avg_dis / 1000 < 7  ~ "<7K",
+      TRUE ~ "Between 7k and 13k"
+    ),
+    avg_d = factor(avg_d, levels = c(">13K", "<7K", "Between 7k and 13k"))
+  ) %>%
+  ungroup() %>%
+  filter(avg_d != "Between 7k and 13k")
 
+ggplot(df, aes(x = `distance..m.`/1000, y = Speed, color = avg_d)) +
+  geom_point(size = 0.5) +
+scale_color_manual(values = c(">13K" = "orange", "<7K" = "forestgreen"))+
+  labs(title = "Speed vs Distance for long and short distance runners",
+       x = "Distance (km)",
+       y = "Average running Speed (m/s)",
+       color = "Run Distance") + 
+    theme(plot.title = element_text(hjust = 0.5,size = 12))
 
 
 
@@ -91,18 +138,17 @@ _Write your text to answer exercise 2b here (Please delete this message before s
 
 ```{r ex4_good_viz, echo = FALSE, out.width = "80%"}
 # edit the file path accordingly
-knitr::include_graphics("img/good_viz.png")
+knitr::include_graphics("img/m.png")
 ```
 
-_Edit the text below by replacing the bold text with the appropriate information to provide a reference for your image (Please delete this message before submission!)_
-
-**Author/Organisation**, "**Title of website**" [Online]. Available at: **URL** (Accessed: **day month year**)
+**csgsolutions**, "**https://www.csgsolutions.com/**" [Online]. Available at: **https://blog.csgsolutions.com/6-tips-for-creating-effective-data-visualizations** (Accessed: **30th of october 2025**)
 
 
 The above image presents a good data visualisation because:
 
--   _Reason 1_
--   _Reason 2_
+1. Easy to read off the data from the chart as the exact amount is written on the graph instead of having to read off the price from the vertical axis. This makes it both efficent and simple to read.
+
+2. Each individual categroy is split into subcategories e.g Central into tech and Furniture. Making it easier to grasp the details of the data. Hence this visualisation gives an accurate account of the data as well as clearly understandable. 
 
 
 #### Example of a bad data visualisation
@@ -110,18 +156,16 @@ The above image presents a good data visualisation because:
 
 ```{r ex4_bad_viz, echo = FALSE, out.width = "80%"}
 # edit the file path accordingly
-knitr::include_graphics("img/bad_viz.png")
+knitr::include_graphics("img/m2.png")
 ```
 
-_Edit the text below by replacing the bold text with the appropriate information to provide a reference for your image (Please delete this message before submission!)_
-
-**Author/Organisation**, "**Title of website**" [Online]. Available at: **URL** (Accessed: **day month year**)
+**csgsolutions**, "**https://www.csgsolutions.com/**" [Online]. Available at: **https://blog.csgsolutions.com/6-tips-for-creating-effective-data-visualizations** (Accessed: **30th of october 2025**)
 
 
 
 The above image presents a bad data visualisation because:
 
--   _Reason 1_
--   _Reason 2_
+1. Inefficient as to read the exact data you have to refer to a separate table. 
 
+2. Graphs are unclear and uneeded since the table gives all the data in a clearer manner here.  
 
