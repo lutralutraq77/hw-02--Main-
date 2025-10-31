@@ -117,6 +117,7 @@ df <- r %>%
 
 ggplot(df, aes(x = `distance..m.`/1000, y = Speed, color = avg_d)) +
   geom_point(size = 0.5) +
+  geom_smooth(method = lm, se = FALSE) +
 scale_color_manual(values = c(">13K" = "orange", "<7K" = "forestgreen"))+
   labs(title = "Speed vs Distance for long and short distance runners",
        x = "Distance (km)",
